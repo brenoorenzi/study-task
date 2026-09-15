@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTask - US01</title>
+    <title>StudyTask - US01 e US02</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,7 +20,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 700px;
         }
         h1 {
             text-align: center;
@@ -30,19 +30,19 @@
         }
         form {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 30px;
         }
-        input[type="text"] {
-            flex: 1;
+        input, select {
+            flex: 1 1 150px;
             padding: 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
-            transition: border-color 0.3s;
         }
-        input[type="text"]:focus {
+        input:focus, select:focus {
             border-color: #3498db;
         }
         button {
@@ -54,14 +54,9 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            transition: background-color 0.3s, transform 0.1s;
+            flex: 1 1 100%;
         }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button:active {
-            transform: scale(0.97);
-        }
+        button:hover { background-color: #2980b9; }
         h2 {
             font-size: 18px;
             color: #7f8c8d;
@@ -69,37 +64,85 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+        ul { list-style: none; padding: 0; margin: 0; margin-bottom: 20px; }
         li {
             background: #f8f9fa;
             border-left: 4px solid #3498db;
             margin-bottom: 10px;
             padding: 12px 15px;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 14px;
             color: #2c3e50;
         }
+        .trabalho-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .bg-pendente { background-color: #f39c12; }
+        .bg-concluido { background-color: #2ecc71; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>StudyTask</h1>
         
+        <h2>Cadastrar Matéria</h2>
         <form method="POST" action="/">
-            <input type="text" name="nome" placeholder="Nova matéria..." required autocomplete="off">
-            <button type="submit">Cadastrar</button>
+            <input type="text" name="nome_materia" placeholder="Nova matéria..." required autocomplete="off">
+            <button type="submit" style="flex: 0 1 auto;">Salvar</button>
         </form>
 
-        <h2>Minhas Matérias</h2>
+        <h2>Cadastrar Trabalho</h2>
+        <form method="POST" action="/">
+            <input type="text" name="descricao_trabalho" placeholder="Descrição do trabalho..." required autocomplete="off">
+            
+            <select name="materia_id" required>
+                <option value="" disabled selected>Selecione a Matéria</option>
+                {% for materia in materias %}
+                    <option value="{{ materia[0] }}">{{ materia[1] }}</option>
+                {% endfor %}
+            </select>
+            
+            <input type="date" name="prazo" required>
+            
+            <select name="prioridade" required>
+                <option value="" disabled selected>Prioridade</option>
+                <option value="Alta">Alta</option>
+                <option value="Média">Média</option>
+                <option value="Baixa">Baixa</option>
+            </select>
+
+            <select name="status" required>
+                <option value="Pendente">Pendente</option>
+                <option value="Concluído">Concluído</option>
+            </select>
+
+            <button type="submit">Cadastrar Trabalho</button>
+        </form>
+
+        <h2>Meus Trabalhos</h2>
         <ul>
-            {% for materia in materias %}
-                <li>{{ materia[1] }}</li>
+            {% for trabalho in trabalhos %}
+                <li>
+                    <div class="trabalho-info">
+                        <strong>{{ trabalho[1] }} ({{ trabalho[2] }})</strong>
+                        <span>Prazo: {{ trabalho[3] }}</span>
+                        <span>Prioridade: {{ trabalho[4] }}</span>
+                        <span class="badge {% if trabalho[5] == 'Concluído' %}bg-concluido{% else %}bg-pendente{% endif %}">
+                            {{ trabalho[5] }}
+                        </span>
+                    </div>
+                </li>
             {% else %}
-                <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhuma matéria cadastrada.</li>
+                <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhum trabalho cadastrado.</li>
             {% endfor %}
         </ul>
     </div>
