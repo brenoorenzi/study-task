@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTask - US01 e US02</title>
+    <title>StudyTask - US01, US02 e US03</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -88,6 +88,24 @@
         }
         .bg-pendente { background-color: #f39c12; }
         .bg-concluido { background-color: #2ecc71; }
+        .btn-editar {
+            background-color: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .btn-editar:hover { background-color: #2980b9; }
+        .btn-cancelar {
+            flex: 1 1 100%;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn-cancelar:hover { color: #2c3e50; }
     </style>
 </head>
 <body>
@@ -100,32 +118,34 @@
             <button type="submit" style="flex: 0 1 auto;">Salvar</button>
         </form>
 
-        <h2>Cadastrar Trabalho</h2>
-        <form method="POST" action="/">
-            <input type="text" name="descricao_trabalho" placeholder="Descrição do trabalho..." required autocomplete="off">
+        {% set t = trabalho_edicao %}
+        <h2>{% if t %}Editar Trabalho{% else %}Cadastrar Trabalho{% endif %}</h2>
+        <form method="POST" action="{% if t %}{{ url_for('materia.editar_trabalho', trabalho_id=t[0]) }}{% else %}/{% endif %}">
+            <input type="text" name="descricao_trabalho" placeholder="Descrição do trabalho..." required autocomplete="off" value="{{ t[1] if t else '' }}">
             
             <select name="materia_id" required>
-                <option value="" disabled selected>Selecione a Matéria</option>
+                <option value="" disabled {% if not t %}selected{% endif %}>Selecione a Matéria</option>
                 {% for materia in materias %}
-                    <option value="{{ materia[0] }}">{{ materia[1] }}</option>
+                    <option value="{{ materia[0] }}" {% if t and t[2] == materia[0] %}selected{% endif %}>{{ materia[1] }}</option>
                 {% endfor %}
             </select>
             
-            <input type="date" name="prazo" required>
+            <input type="date" name="prazo" required value="{{ t[3] if t else '' }}">
             
             <select name="prioridade" required>
-                <option value="" disabled selected>Prioridade</option>
-                <option value="Alta">Alta</option>
-                <option value="Média">Média</option>
-                <option value="Baixa">Baixa</option>
+                <option value="" disabled {% if not t %}selected{% endif %}>Prioridade</option>
+                <option value="Alta" {% if t and t[4] == 'Alta' %}selected{% endif %}>Alta</option>
+                <option value="Média" {% if t and t[4] == 'Média' %}selected{% endif %}>Média</option>
+                <option value="Baixa" {% if t and t[4] == 'Baixa' %}selected{% endif %}>Baixa</option>
             </select>
 
             <select name="status" required>
-                <option value="Pendente">Pendente</option>
-                <option value="Concluído">Concluído</option>
+                <option value="Pendente" {% if t and t[5] == 'Pendente' %}selected{% endif %}>Pendente</option>
+                <option value="Concluído" {% if t and t[5] == 'Concluído' %}selected{% endif %}>Concluído</option>
             </select>
 
-            <button type="submit">Cadastrar Trabalho</button>
+            <button type="submit">{% if t %}Salvar Alterações{% else %}Cadastrar Trabalho{% endif %}</button>
+            {% if t %}<a href="{{ url_for('materia.home') }}" class="btn-cancelar">Cancelar</a>{% endif %}
         </form>
 
         <h2>Meus Trabalhos</h2>
@@ -139,6 +159,7 @@
                         <span class="badge {% if trabalho[5] == 'Concluído' %}bg-concluido{% else %}bg-pendente{% endif %}">
                             {{ trabalho[5] }}
                         </span>
+                        <a href="{{ url_for('materia.editar_trabalho', trabalho_id=trabalho[0]) }}" class="btn-editar">Editar</a>
                     </div>
                 </li>
             {% else %}

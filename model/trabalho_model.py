@@ -42,3 +42,26 @@ def buscar_trabalhos():
     resultado = cursor.fetchall()
     conexao.close()
     return resultado
+
+def buscar_trabalho_por_id(trabalho_id):
+    conexao = get_conexao()
+    cursor = conexao.cursor()
+    cursor.execute('''
+        SELECT id, descricao, materia_id, prazo, prioridade, status
+        FROM trabalhos
+        WHERE id = ?
+    ''', (trabalho_id,))
+    resultado = cursor.fetchone()
+    conexao.close()
+    return resultado
+
+def atualizar_trabalho(trabalho_id, descricao, materia_id, prazo, prioridade, status):
+    conexao = get_conexao()
+    cursor = conexao.cursor()
+    cursor.execute('''
+        UPDATE trabalhos
+        SET descricao = ?, materia_id = ?, prazo = ?, prioridade = ?, status = ?
+        WHERE id = ?
+    ''', (descricao, materia_id, prazo, prioridade, status, trabalho_id))
+    conexao.commit()
+    conexao.close()
