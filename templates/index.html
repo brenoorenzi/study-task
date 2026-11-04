@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTask - US01 a US05</title>
+    <title>StudyTask - US06 & US08</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,7 +11,7 @@
             color: #333;
             display: flex;
             justify-content: center;
-            padding-top: 50px;
+            padding: 30px 20px;
             margin: 0;
         }
         .container {
@@ -20,14 +20,41 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 700px;
+            max-width: 800px;
         }
         h1 {
             text-align: center;
             font-size: 24px;
             color: #2c3e50;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
+        /* Estilos do Painel de Totais (US08) */
+        .painel-totais {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .card-totais {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .card-totais h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .card-totais p {
+            margin: 8px 0 0 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
         form {
             display: flex;
             flex-wrap: wrap;
@@ -57,28 +84,48 @@
             flex: 1 1 100%;
         }
         button:hover { background-color: #2980b9; }
+        
         h2 {
             font-size: 18px;
-            color: #7f8c8d;
+            color: #2c3e50;
             border-bottom: 2px solid #ecf0f1;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            margin-top: 25px;
             margin-bottom: 15px;
         }
-        ul { list-style: none; padding: 0; margin: 0; margin-bottom: 20px; }
+        
+        /* Estilos para Agrupamento por Matéria (US06) */
+        .bloco-materia {
+            background: #fafbfc;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .bloco-materia h3 {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        ul { list-style: none; padding: 0; margin: 0; }
         li {
-            background: #f8f9fa;
+            background: #ffffff;
             border-left: 4px solid #3498db;
             margin-bottom: 10px;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 4px;
             font-size: 14px;
             color: #2c3e50;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
         .trabalho-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .badge {
             padding: 4px 8px;
@@ -87,7 +134,6 @@
             font-weight: bold;
             color: white;
         }
-        /* Novas cores da US04 */
         .bg-pendente { background-color: #f39c12; }
         .bg-fazendo { background-color: #3498db; }
         .bg-concluido { background-color: #2ecc71; }
@@ -104,7 +150,6 @@
         }
         .btn-editar:hover { background-color: #2980b9; }
         
-        /* Novo CSS da US05 */
         .btn-desativar {
             background-color: #e74c3c;
             color: white;
@@ -121,7 +166,6 @@
             gap: 8px;
             align-items: center;
         }
-        
         .btn-cancelar {
             flex: 1 1 100%;
             text-align: center;
@@ -135,6 +179,26 @@
 <body>
     <div class="container">
         <h1>StudyTask</h1>
+        
+        <!-- US08: Painel com Totais de Atividades -->
+        <div class="painel-totais">
+            <div class="card-totais">
+                <h3>Total de Trabalhos</h3>
+                <p>{{ totais.geral }}</p>
+            </div>
+            <div class="card-totais">
+                <h3>Concluídos</h3>
+                <p style="color: #2ecc71;">{{ totais.concluidos }}</p>
+            </div>
+            <div class="card-totais">
+                <h3>Pendentes / Fazendo</h3>
+                <p style="color: #f39c12;">{{ totais.pendentes }}</p>
+            </div>
+            <div class="card-totais">
+                <h3>Atrasados</h3>
+                <p style="color: #e74c3c;">{{ totais.atrasados }}</p>
+            </div>
+        </div>
         
         <h2>Cadastrar Matéria</h2>
         <form method="POST" action="/">
@@ -174,33 +238,46 @@
             {% if t %}<a href="{{ url_for('materia.home') }}" class="btn-cancelar">Cancelar</a>{% endif %}
         </form>
 
-        <h2>Meus Trabalhos</h2>
-        <ul>
-            {% for trabalho in trabalhos %}
-                <li>
-                    <div class="trabalho-info">
-                        <strong>{{ trabalho[1] }} ({{ trabalho[2] }})</strong>
-                        <span>Prazo: {{ trabalho[3] }}</span>
-                        <span>Prioridade: {{ trabalho[4] }}</span>
-                        
-                        <span class="badge 
-                            {% if trabalho[5] == 'Concluído' %}bg-concluido
-                            {% elif trabalho[5] == 'Fazendo' %}bg-fazendo
-                            {% elif trabalho[5] == 'Atrasado' %}bg-atrasado
-                            {% else %}bg-pendente{% endif %}">
-                            {{ trabalho[5] }}
-                        </span>
-                        
-                        <div class="acoes">
-                            <a href="{{ url_for('materia.editar_trabalho', trabalho_id=trabalho[0]) }}" class="btn-editar">Editar</a>
-                            <a href="{{ url_for('materia.desativar', trabalho_id=trabalho[0]) }}" class="btn-desativar" onclick="return confirm('Tem certeza que deseja inativar este trabalho?')">X</a>
-                        </div>
-                    </div>
-                </li>
-            {% else %}
-                <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhum trabalho cadastrado.</li>
-            {% endfor %}
-        </ul>
+        <h2>Meus Trabalhos por Matéria (US06)</h2>
+        
+        <!-- US06: Visualizar todos os trabalhos em uma lista, dentro da matéria -->
+        {% for materia in materias %}
+            <div class="bloco-materia">
+                <h3>📚 {{ materia[1] }}</h3>
+                <ul>
+                    {% set ns = namespace(tem_trabalho=false) %}
+                    {% for trabalho in trabalhos %}
+                        {% if trabalho[2] == materia[1] %}
+                            {% set ns.tem_trabalho = true %}
+                            <li>
+                                <div class="trabalho-info">
+                                    <strong>{{ trabalho[1] }}</strong>
+                                    <span>Prazo: {{ trabalho[3] }}</span>
+                                    <span>Prioridade: {{ trabalho[4] }}</span>
+                                    <span class="badge 
+                                        {% if trabalho[5] == 'Concluído' %}bg-concluido
+                                        {% elif trabalho[5] == 'Fazendo' %}bg-fazendo
+                                        {% elif trabalho[5] == 'Atrasado' %}bg-atrasado
+                                        {% else %}bg-pendente{% endif %}">
+                                        {{ trabalho[5] }}
+                                    </span>
+                                    <div class="acoes">
+                                        <a href="{{ url_for('materia.editar_trabalho', trabalho_id=trabalho[0]) }}" class="btn-editar">Editar</a>
+                                        <a href="{{ url_for('materia.desativar', trabalho_id=trabalho[0]) }}" class="btn-desativar" onclick="return confirm('Tem certeza que deseja inativar este trabalho?')">X</a>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not ns.tem_trabalho %}
+                        <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhum trabalho cadastrado para esta matéria.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% else %}
+            <p style="color: #7f8c8d; text-align: center;">Nenhuma matéria cadastrada.</p>
+        {% endfor %}
     </div>
 </body>
 </html>
