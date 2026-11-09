@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTask - US06 & US08</title>
+    <title>StudyTask</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -238,7 +238,7 @@
             {% if t %}<a href="{{ url_for('materia.home') }}" class="btn-cancelar">Cancelar</a>{% endif %}
         </form>
 
-        <h2>Pesquisa e Filtros (US07 & US10)</h2>
+        <h2>Pesquisa e Filtros</h2>
         <!-- Formulário de Filtros e Busca (GET mantém os valores na URL) -->
         <form method="GET" action="/" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
             <input type="text" name="busca" placeholder="Pesquisar por nome..." value="{{ request.args.get('busca', '') }}">
@@ -271,7 +271,7 @@
             {% endif %}
         </form>
 
-        <h2>Meus Trabalhos por Matéria (US06)</h2>
+        <h2>Meus Trabalhos por Matéria</h2>
         
         <!-- US06: Visualizar todos os trabalhos em uma lista, dentro da matéria -->
         {% for materia in materias %}

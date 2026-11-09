@@ -40,7 +40,7 @@ def home():
     
     materias_salvas = buscar_materias()
     
-    # Busca filtrada para a listagem (US07 e US10)
+    # Busca filtrada para a listagem
     trabalhos_salvos = buscar_trabalhos(
         materia_id=filtro_materia, 
         prioridade=filtro_prioridade, 
@@ -48,7 +48,7 @@ def home():
         busca=termo_busca
     )
     
-    # Para o painel de totais (US08), buscamos todos os trabalhos sem filtros para manter as estatísticas globais corretas
+    # Para o painel de totais, buscamos todos os trabalhos sem filtros para manter as estatísticas globais corretas
     todos_trabalhos = buscar_trabalhos()
     total_geral = len(todos_trabalhos)
     total_concluidos = sum(1 for t in todos_trabalhos if t[5] == 'Concluído')
