@@ -238,6 +238,39 @@
             {% if t %}<a href="{{ url_for('materia.home') }}" class="btn-cancelar">Cancelar</a>{% endif %}
         </form>
 
+        <h2>Pesquisa e Filtros (US07 & US10)</h2>
+        <!-- Formulário de Filtros e Busca (GET mantém os valores na URL) -->
+        <form method="GET" action="/" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <input type="text" name="busca" placeholder="Pesquisar por nome..." value="{{ request.args.get('busca', '') }}">
+            
+            <select name="materia_id">
+                <option value="">Todas as Matérias</option>
+                {% for materia in materias %}
+                    <option value="{{ materia[0] }}" {% if request.args.get('materia_id') == materia[0]|string %}selected{% endif %}>{{ materia[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="prioridade">
+                <option value="">Todas as Prioridades</option>
+                <option value="Alta" {% if request.args.get('prioridade') == 'Alta' %}selected{% endif %}>Alta</option>
+                <option value="Média" {% if request.args.get('prioridade') == 'Média' %}selected{% endif %}>Média</option>
+                <option value="Baixa" {% if request.args.get('prioridade') == 'Baixa' %}selected{% endif %}>Baixa</option>
+            </select>
+
+            <select name="status">
+                <option value="">Todos os Status</option>
+                <option value="Pendente" {% if request.args.get('status') == 'Pendente' %}selected{% endif %}>Pendente</option>
+                <option value="Fazendo" {% if request.args.get('status') == 'Fazendo' %}selected{% endif %}>Fazendo</option>
+                <option value="Concluído" {% if request.args.get('status') == 'Concluído' %}selected{% endif %}>Concluído</option>
+                <option value="Atrasado" {% if request.args.get('status') == 'Atrasado' %}selected{% endif %}>Atrasado</option>
+            </select>
+
+            <button type="submit" style="background-color: #27ae60;">Filtrar</button>
+            {% if request.args %}
+                <a href="{{ url_for('materia.home') }}" class="btn-cancelar" style="margin-top: 5px;">Limpar Filtros</a>
+            {% endif %}
+        </form>
+
         <h2>Meus Trabalhos por Matéria (US06)</h2>
         
         <!-- US06: Visualizar todos os trabalhos em uma lista, dentro da matéria -->
@@ -271,7 +304,7 @@
                     {% endfor %}
                     
                     {% if not ns.tem_trabalho %}
-                        <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhum trabalho cadastrado para esta matéria.</li>
+                        <li style="border-left: 4px solid #bdc3c7; color: #7f8c8d;">Nenhum trabalho encontrado com esses filtros para esta matéria.</li>
                     {% endif %}
                 </ul>
             </div>

@@ -32,14 +32,28 @@ def home():
             
         return redirect(url_for('materia.home'))
     
-    materias_salvas = buscar_materias()
-    trabalhos_salvos = buscar_trabalhos()
+    # Capturando parâmetros de filtro e busca via GET
+    filtro_materia = request.args.get('materia_id')
+    filtro_prioridade = request.args.get('prioridade')
+    filtro_status = request.args.get('status')
+    termo_busca = request.args.get('busca')
     
-    # --- US08: Lógica para calcular os totais de atividades ---
-    total_geral = len(trabalhos_salvos)
-    total_concluidos = sum(1 for t in trabalhos_salvos if t[5] == 'Concluído')
-    total_pendentes = sum(1 for t in trabalhos_salvos if t[5] in ['Pendente', 'Fazendo'])
-    total_atrasados = sum(1 for t in trabalhos_salvos if t[5] == 'Atrasado')
+    materias_salvas = buscar_materias()
+    
+    # Busca filtrada para a listagem (US07 e US10)
+    trabalhos_salvos = buscar_trabalhos(
+        materia_id=filtro_materia, 
+        prioridade=filtro_prioridade, 
+        status=filtro_status, 
+        busca=termo_busca
+    )
+    
+    # Para o painel de totais (US08), buscamos todos os trabalhos sem filtros para manter as estatísticas globais corretas
+    todos_trabalhos = buscar_trabalhos()
+    total_geral = len(todos_trabalhos)
+    total_concluidos = sum(1 for t in todos_trabalhos if t[5] == 'Concluído')
+    total_pendentes = sum(1 for t in todos_trabalhos if t[5] in ['Pendente', 'Fazendo'])
+    total_atrasados = sum(1 for t in todos_trabalhos if t[5] == 'Atrasado')
     
     totais = {
         'geral': total_geral,
@@ -47,7 +61,6 @@ def home():
         'pendentes': total_pendentes,
         'atrasados': total_atrasados
     }
-    # ---------------------------------------------------------
 
     return render_template('index.html', 
                            materias=materias_salvas, 
@@ -80,12 +93,12 @@ def editar_trabalho(trabalho_id):
         return redirect(url_for('materia.home'))
 
     materias_salvas = buscar_materias()
-    trabalhos_salvos = buscar_trabalhos()
+    todos_trabalhos = buscar_trabalhos()
     
-    total_geral = len(trabalhos_salvos)
-    total_concluidos = sum(1 for t in trabalhos_salvos if t[5] == 'Concluído')
-    total_pendentes = sum(1 for t in trabalhos_salvos if t[5] in ['Pendente', 'Fazendo'])
-    total_atrasados = sum(1 for t in trabalhos_salvos if t[5] == 'Atrasado')
+    total_geral = len(todos_trabalhos)
+    total_concluidos = sum(1 for t in todos_trabalhos if t[5] == 'Concluído')
+    total_pendentes = sum(1 for t in todos_trabalhos if t[5] in ['Pendente', 'Fazendo'])
+    total_atrasados = sum(1 for t in todos_trabalhos if t[5] == 'Atrasado')
     
     totais = {
         'geral': total_geral,
@@ -96,7 +109,7 @@ def editar_trabalho(trabalho_id):
 
     return render_template('index.html',
                            materias=materias_salvas,
-                           trabalhos=trabalhos_salvos,
+                           trabalhos=todos_trabalhos,
                            trabalho_edicao=trabalho,
                            totais=totais)
 

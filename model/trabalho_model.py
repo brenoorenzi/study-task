@@ -31,15 +31,35 @@ def cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status):
     conexao.commit()
     conexao.close()
 
-def buscar_trabalhos():
+def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None):
     conexao = get_conexao()
     cursor = conexao.cursor()
-    cursor.execute('''
-        SELECT t.id, t.descricao, m.nome, t.prazo, t.prioridade, t.status 
+    
+    query = '''
+        SELECT t.id, t.descricao, m.nome, t.prazo, t.prioridade, t.status, m.id 
         FROM trabalhos t
         JOIN materias m ON t.materia_id = m.id
         WHERE t.ativo = 1
-    ''')
+    '''
+    parametros = []
+    
+    if materia_id:
+        query += ' AND t.materia_id = ?'
+        parametros.append(materia_id)
+        
+    if prioridade:
+        query += ' AND t.prioridade = ?'
+        parametros.append(prioridade)
+        
+    if status:
+        query += ' AND t.status = ?'
+        parametros.append(status)
+        
+    if busca:
+        query += ' AND t.descricao LIKE ?'
+        parametros.append(f'%{busca}%')
+        
+    cursor.execute(query, parametros)
     resultado = cursor.fetchall()
     conexao.close()
     return resultado
