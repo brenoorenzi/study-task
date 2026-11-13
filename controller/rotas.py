@@ -18,6 +18,7 @@ def home():
             prazo = request.form['prazo']
             prioridade = request.form['prioridade']
             status = request.form['status']
+            nota = request.form.get('nota')
             
             data_prazo = datetime.strptime(prazo, '%Y-%m-%d').date()
             hoje = datetime.now().date()
@@ -28,27 +29,27 @@ def home():
                 elif data_prazo == hoje:
                     prioridade = 'Alta'
             
-            cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status)
+            nota_val = float(nota) if nota else None
+            cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status, nota_val)
             
         return redirect(url_for('materia.home'))
     
-    # Capturando parâmetros de filtro e busca via GET
     filtro_materia = request.args.get('materia_id')
     filtro_prioridade = request.args.get('prioridade')
     filtro_status = request.args.get('status')
     termo_busca = request.args.get('busca')
+    apenas_concluidos = request.args.get('apenas_concluidos') == '1'
     
     materias_salvas = buscar_materias()
     
-    # Busca filtrada para a listagem
     trabalhos_salvos = buscar_trabalhos(
         materia_id=filtro_materia, 
         prioridade=filtro_prioridade, 
         status=filtro_status, 
-        busca=termo_busca
+        busca=termo_busca,
+        apenas_concluidos=apenas_concluidos
     )
     
-    # Para o painel de totais, buscamos todos os trabalhos sem filtros para manter as estatísticas globais corretas
     todos_trabalhos = buscar_trabalhos()
     total_geral = len(todos_trabalhos)
     total_concluidos = sum(1 for t in todos_trabalhos if t[5] == 'Concluído')
@@ -62,10 +63,32 @@ def home():
         'atrasados': total_atrasados
     }
 
+    # --- Cálculo de Médias Finais e Critérios de Aprovação ---
+    medias_materias = {}
+    for materia in materias_salvas:
+        m_id, m_nome = materia[0], materia[1]
+        # t[2] é o nome da matéria, t[7] é a nota
+        trabalhos_materia = [t for t in todos_trabalhos if t[2] == m_nome and t[7] is not None]
+        
+        if trabalhos_materia:
+            soma_notas = sum(t[7] for t in trabalhos_materia)
+            media = soma_notas / len(trabalhos_materia)
+            status_aprovacao = "Aprovado" if media >= 6.0 else "Reprovado"
+        else:
+            media = 0.0
+            status_aprovacao = "Sem notas"
+            
+        medias_materias[m_id] = {
+            'media': round(media, 2),
+            'situacao': status_aprovacao
+        }
+    # ---------------------------------------------------------------
+
     return render_template('index.html', 
                            materias=materias_salvas, 
                            trabalhos=trabalhos_salvos,
-                           totais=totais)
+                           totais=totais,
+                           medias_materias=medias_materias)
 
 @materia_bp.route('/trabalho/<int:trabalho_id>/editar', methods=['GET', 'POST'])
 def editar_trabalho(trabalho_id):
@@ -79,6 +102,7 @@ def editar_trabalho(trabalho_id):
         prazo = request.form['prazo']
         prioridade = request.form['prioridade']
         status = request.form['status']
+        nota = request.form.get('nota')
         
         data_prazo = datetime.strptime(prazo, '%Y-%m-%d').date()
         hoje = datetime.now().date()
@@ -89,7 +113,8 @@ def editar_trabalho(trabalho_id):
             elif data_prazo == hoje:
                 prioridade = 'Alta'
         
-        atualizar_trabalho(trabalho_id, descricao, materia_id, prazo, prioridade, status)
+        nota_val = float(nota) if nota else None
+        atualizar_trabalho(trabalho_id, descricao, materia_id, prazo, prioridade, status, nota_val)
         return redirect(url_for('materia.home'))
 
     materias_salvas = buscar_materias()

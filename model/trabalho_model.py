@@ -14,34 +14,43 @@ def criar_tabela_trabalhos():
             prazo TEXT NOT NULL,
             prioridade TEXT NOT NULL,
             status TEXT NOT NULL,
+            nota REAL,
             ativo INTEGER DEFAULT 1,
             FOREIGN KEY (materia_id) REFERENCES materias (id)
         )
     ''')
+    # Migração segura para adicionar a coluna nota caso a tabela já exista
+    try:
+        cursor.execute('ALTER TABLE trabalhos ADD COLUMN nota REAL')
+    except sqlite3.OperationalError:
+        pass
     conexao.commit()
     conexao.close()
 
-def cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status):
+def cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status, nota=None):
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute('''
-        INSERT INTO trabalhos (descricao, materia_id, prazo, prioridade, status) 
-        VALUES (?, ?, ?, ?, ?)
-    ''', (descricao, materia_id, prazo, prioridade, status))
+        INSERT INTO trabalhos (descricao, materia_id, prazo, prioridade, status, nota) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (descricao, materia_id, prazo, prioridade, status, nota))
     conexao.commit()
     conexao.close()
 
-def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None):
+def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None, apenas_concluidos=False):
     conexao = get_conexao()
     cursor = conexao.cursor()
     
     query = '''
-        SELECT t.id, t.descricao, m.nome, t.prazo, t.prioridade, t.status, m.id 
+        SELECT t.id, t.descricao, m.nome, t.prazo, t.prioridade, t.status, m.id, t.nota 
         FROM trabalhos t
         JOIN materias m ON t.materia_id = m.id
         WHERE t.ativo = 1
     '''
     parametros = []
+    
+    if apenas_concluidos:
+        query += " AND t.status = 'Concluído'"
     
     if materia_id:
         query += ' AND t.materia_id = ?'
@@ -68,7 +77,7 @@ def buscar_trabalho_por_id(trabalho_id):
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute('''
-        SELECT id, descricao, materia_id, prazo, prioridade, status
+        SELECT id, descricao, materia_id, prazo, prioridade, status, nota
         FROM trabalhos
         WHERE id = ? AND ativo = 1
     ''', (trabalho_id,))
@@ -76,14 +85,14 @@ def buscar_trabalho_por_id(trabalho_id):
     conexao.close()
     return resultado
 
-def atualizar_trabalho(trabalho_id, descricao, materia_id, prazo, prioridade, status):
+def atualizar_trabalho(trabalho_id, descricao, materia_id, prazo, prioridade, status, nota=None):
     conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute('''
         UPDATE trabalhos
-        SET descricao = ?, materia_id = ?, prazo = ?, prioridade = ?, status = ?
+        SET descricao = ?, materia_id = ?, prazo = ?, prioridade = ?, status = ?, nota = ?
         WHERE id = ?
-    ''', (descricao, materia_id, prazo, prioridade, status, trabalho_id))
+    ''', (descricao, materia_id, prazo, prioridade, status, nota, trabalho_id))
     conexao.commit()
     conexao.close()
 

@@ -28,7 +28,7 @@
             color: #2c3e50;
             margin-bottom: 20px;
         }
-        /* Estilos do Painel de Totais (US08) */
+        /* Estilos do Painel de Totais */
         .painel-totais {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -94,7 +94,7 @@
             margin-bottom: 15px;
         }
         
-        /* Estilos para Agrupamento por Matéria (US06) */
+        /* Estilos para Agrupamento por Matéria */
         .bloco-materia {
             background: #fafbfc;
             border: 1px solid #e1e4e8;
@@ -108,7 +108,32 @@
             font-size: 16px;
             border-bottom: 1px solid #eee;
             padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .info-media {
+            font-size: 13px;
+            color: #555;
+            background: #eef2f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* Classes de Situação Acadêmica */
+        .situacao-aprovado {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+        .situacao-reprovado {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .situacao-neutro {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
         ul { list-style: none; padding: 0; margin: 0; }
         li {
             background: #ffffff;
@@ -180,7 +205,7 @@
     <div class="container">
         <h1>StudyTask</h1>
         
-        <!-- US08: Painel com Totais de Atividades -->
+        <!-- Painel com Totais de Atividades -->
         <div class="painel-totais">
             <div class="card-totais">
                 <h3>Total de Trabalhos</h3>
@@ -234,13 +259,16 @@
                 <option value="Atrasado" {% if t and t[5] == 'Atrasado' %}selected{% endif %}>Atrasado</option>
             </select>
 
+            <!-- Campo para inserir Nota -->
+            <input type="number" step="0.1" min="0" max="10" name="nota" placeholder="Nota (0 a 10)" value="{{ t[6] if t and t[6] is not none else '' }}">
+
             <button type="submit">{% if t %}Salvar Alterações{% else %}Cadastrar Trabalho{% endif %}</button>
             {% if t %}<a href="{{ url_for('materia.home') }}" class="btn-cancelar">Cancelar</a>{% endif %}
         </form>
 
         <h2>Pesquisa e Filtros</h2>
         <!-- Formulário de Filtros e Busca (GET mantém os valores na URL) -->
-        <form method="GET" action="/" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+        <form method="GET" action="/" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; align-items: center;">
             <input type="text" name="busca" placeholder="Pesquisar por nome..." value="{{ request.args.get('busca', '') }}">
             
             <select name="materia_id">
@@ -265,7 +293,13 @@
                 <option value="Atrasado" {% if request.args.get('status') == 'Atrasado' %}selected{% endif %}>Atrasado</option>
             </select>
 
-            <button type="submit" style="background-color: #27ae60;">Filtrar</button>
+            <!-- Filtro de Apenas Concluídos -->
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; flex: 1 1 150px;">
+                <input type="checkbox" name="apenas_concluidos" value="1" {% if request.args.get('apenas_concluidos') == '1' %}checked{% endif %}>
+                Apenas Concluídos
+            </label>
+
+            <button type="submit" style="background-color: #27ae60; flex: 1 1 100%;">Filtrar</button>
             {% if request.args %}
                 <a href="{{ url_for('materia.home') }}" class="btn-cancelar" style="margin-top: 5px;">Limpar Filtros</a>
             {% endif %}
@@ -273,10 +307,22 @@
 
         <h2>Meus Trabalhos por Matéria</h2>
         
-        <!-- US06: Visualizar todos os trabalhos em uma lista, dentro da matéria -->
+        <!-- Visualizar trabalhos e médias por matéria -->
         {% for materia in materias %}
             <div class="bloco-materia">
-                <h3>📚 {{ materia[1] }}</h3>
+                <h3>
+                    <span>📚 {{ materia[1] }}</span>
+                    {% if medias_materias and materia[0] in medias_materias %}
+                        {% set info = medias_materias[materia[0]] %}
+                        <div class="info-media">
+                            Média: <strong>{{ info.media }}</strong> | 
+                            Situação: 
+                            <span class="{% if info.situacao == 'Aprovado' %}situacao-aprovado{% elif info.situacao == 'Reprovado' %}situacao-reprovado{% else %}situacao-neutro{% endif %}">
+                                {{ info.situacao }}
+                            </span>
+                        </div>
+                    {% endif %}
+                </h3>
                 <ul>
                     {% set ns = namespace(tem_trabalho=false) %}
                     {% for trabalho in trabalhos %}
@@ -287,6 +333,9 @@
                                     <strong>{{ trabalho[1] }}</strong>
                                     <span>Prazo: {{ trabalho[3] }}</span>
                                     <span>Prioridade: {{ trabalho[4] }}</span>
+                                    {% if trabalho[7] is not none %}
+                                        <span>Nota: <strong>{{ trabalho[7] }}</strong></span>
+                                    {% endif %}
                                     <span class="badge 
                                         {% if trabalho[5] == 'Concluído' %}bg-concluido
                                         {% elif trabalho[5] == 'Fazendo' %}bg-fazendo
