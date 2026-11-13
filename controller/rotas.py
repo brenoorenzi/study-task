@@ -5,6 +5,22 @@ from model.trabalho_model import cadastrar_trabalho, buscar_trabalhos, buscar_tr
 
 materia_bp = Blueprint('materia', __name__)
 
+# US11: trabalhos com prazo em até N dias (e ainda não concluídos) ganham destaque
+DIAS_ALERTA = 3
+
+def calcular_destaques(trabalhos):
+    """Retorna {id_do_trabalho: dias_restantes} para os trabalhos que merecem destaque.
+    dias_restantes < 0 significa prazo vencido; 0 = vence hoje."""
+    hoje = datetime.now().date()
+    destaques = {}
+    for t in trabalhos:
+        if t[5] == 'Concluído':
+            continue
+        dias = (datetime.strptime(t[3], '%Y-%m-%d').date() - hoje).days
+        if dias <= DIAS_ALERTA:
+            destaques[t[0]] = dias
+    return destaques
+
 @materia_bp.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -38,6 +54,9 @@ def home():
     filtro_prioridade = request.args.get('prioridade')
     filtro_status = request.args.get('status')
     termo_busca = request.args.get('busca')
+    ordem = request.args.get('ordem', 'asc')
+    if ordem not in ('asc', 'desc'):
+        ordem = 'asc'
     apenas_concluidos = request.args.get('apenas_concluidos') == '1'
     
     materias_salvas = buscar_materias()
@@ -47,7 +66,8 @@ def home():
         prioridade=filtro_prioridade, 
         status=filtro_status, 
         busca=termo_busca,
-        apenas_concluidos=apenas_concluidos
+        apenas_concluidos=apenas_concluidos,
+        ordem=ordem
     )
     
     todos_trabalhos = buscar_trabalhos()
@@ -88,7 +108,8 @@ def home():
                            materias=materias_salvas, 
                            trabalhos=trabalhos_salvos,
                            totais=totais,
-                           medias_materias=medias_materias)
+                           medias_materias=medias_materias,
+                           destaques=calcular_destaques(trabalhos_salvos))
 
 @materia_bp.route('/trabalho/<int:trabalho_id>/editar', methods=['GET', 'POST'])
 def editar_trabalho(trabalho_id):
@@ -136,7 +157,8 @@ def editar_trabalho(trabalho_id):
                            materias=materias_salvas,
                            trabalhos=todos_trabalhos,
                            trabalho_edicao=trabalho,
-                           totais=totais)
+                           totais=totais,
+                           destaques=calcular_destaques(todos_trabalhos))
 
 @materia_bp.route('/trabalho/<int:trabalho_id>/desativar')
 def desativar(trabalho_id):

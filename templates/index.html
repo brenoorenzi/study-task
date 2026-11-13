@@ -191,6 +191,25 @@
             gap: 8px;
             align-items: center;
         }
+        /* US11: destaque de prazos próximos / vencidos */
+        li.destaque-proximo {
+            border-left-color: #e67e22;
+            background: #fff8e6;
+        }
+        li.destaque-vencido {
+            border-left-color: #e74c3c;
+            background: #fdecea;
+        }
+        .alerta-prazo {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .alerta-proximo { background-color: #e67e22; }
+        .alerta-vencido { background-color: #c0392b; }
+
         .btn-cancelar {
             flex: 1 1 100%;
             text-align: center;
@@ -293,6 +312,12 @@
                 <option value="Atrasado" {% if request.args.get('status') == 'Atrasado' %}selected{% endif %}>Atrasado</option>
             </select>
 
+            <!-- US09: ordenação por prazo -->
+            <select name="ordem">
+                <option value="asc" {% if request.args.get('ordem', 'asc') != 'desc' %}selected{% endif %}>Prazo: mais próximo primeiro</option>
+                <option value="desc" {% if request.args.get('ordem') == 'desc' %}selected{% endif %}>Prazo: mais distante primeiro</option>
+            </select>
+
             <!-- Filtro de Apenas Concluídos -->
             <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; flex: 1 1 150px;">
                 <input type="checkbox" name="apenas_concluidos" value="1" {% if request.args.get('apenas_concluidos') == '1' %}checked{% endif %}>
@@ -328,10 +353,19 @@
                     {% for trabalho in trabalhos %}
                         {% if trabalho[2] == materia[1] %}
                             {% set ns.tem_trabalho = true %}
-                            <li>
+                            {% set dias = destaques.get(trabalho[0]) if destaques else none %}
+                            <li class="{% if dias is not none %}{% if dias < 0 %}destaque-vencido{% else %}destaque-proximo{% endif %}{% endif %}">
                                 <div class="trabalho-info">
                                     <strong>{{ trabalho[1] }}</strong>
                                     <span>Prazo: {{ trabalho[3] }}</span>
+                                    {% if dias is not none %}
+                                        <span class="alerta-prazo {% if dias < 0 %}alerta-vencido{% else %}alerta-proximo{% endif %}">
+                                            {% if dias < 0 %}⚠ Prazo vencido
+                                            {% elif dias == 0 %}⚠ Vence hoje
+                                            {% elif dias == 1 %}⚠ Vence amanhã
+                                            {% else %}⚠ Vence em {{ dias }} dias{% endif %}
+                                        </span>
+                                    {% endif %}
                                     <span>Prioridade: {{ trabalho[4] }}</span>
                                     {% if trabalho[7] is not none %}
                                         <span>Nota: <strong>{{ trabalho[7] }}</strong></span>

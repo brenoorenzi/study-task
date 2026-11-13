@@ -37,7 +37,7 @@ def cadastrar_trabalho(descricao, materia_id, prazo, prioridade, status, nota=No
     conexao.commit()
     conexao.close()
 
-def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None, apenas_concluidos=False):
+def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None, apenas_concluidos=False, ordem='asc'):
     conexao = get_conexao()
     cursor = conexao.cursor()
     
@@ -67,6 +67,11 @@ def buscar_trabalhos(materia_id=None, prioridade=None, status=None, busca=None, 
     if busca:
         query += ' AND t.descricao LIKE ?'
         parametros.append(f'%{busca}%')
+    
+    # US09: ordenação por prazo (o prazo é salvo como YYYY-MM-DD, então ordena corretamente).
+    # A direção vem de uma lista fixa, nunca direto do usuário, para evitar SQL injection.
+    direcao = 'DESC' if ordem == 'desc' else 'ASC'
+    query += f' ORDER BY t.prazo {direcao}, t.id ASC'
         
     cursor.execute(query, parametros)
     resultado = cursor.fetchall()
